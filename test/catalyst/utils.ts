@@ -125,7 +125,7 @@ interface AttributesObj {
 export async function prepareGemEventData(
   registry: Contract,
   mintReceipt: Receipt,
-  upgradeReceipt?: Receipt
+  upgradeReceipts: Receipt[]
 ): Promise<AttributesObj> {
   const catalystAppliedEvents = await findEvents(
     registry,
@@ -145,19 +145,19 @@ export async function prepareGemEventData(
     gemEvents.push(initialGemEvent);
   }
 
-  if (upgradeReceipt) {
-    const gemsAddedEvents = await findFilteredGemEvents(
-      upgradeReceipt.blockHash,
-      assetId,
-      registry
-    );
-    for (const event of gemsAddedEvents) {
-      if (event.args) {
-        const gemEvent = await getGemEvent(
-          event.args[1],
-          upgradeReceipt.blockHash
-        );
-        gemEvents.push(gemEvent);
+  if (upgradeReceipts.length != 0) {
+    for (const rec of upgradeReceipts) {
+      const gemsAddedEvents = await findFilteredGemEvents(
+        rec.blockHash,
+        assetId,
+        registry
+      );
+      console.log(`gemsAddedEvents.length: ${gemsAddedEvents.length}`);
+      for (const event of gemsAddedEvents) {
+        if (event.args) {
+          const gemEvent = await getGemEvent(event.args[1], rec.blockHash);
+          gemEvents.push(gemEvent);
+        }
       }
     }
   }
