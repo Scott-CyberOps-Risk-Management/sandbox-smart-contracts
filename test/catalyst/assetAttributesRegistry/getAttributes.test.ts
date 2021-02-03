@@ -146,18 +146,7 @@ describe('AssetAttributesRegistry: getAttributes', function () {
     ({assetMinterContract} = await setupAssetMinter());
     ({assetUpgraderContract} = await setupAssetUpgrader());
     ({assetAttributesRegistry} = await setupAssetAttributesRegistry());
-    ({
-      commonCatalyst,
-      rareCatalyst,
-      epicCatalyst,
-      legendaryCatalyst,
-      powerGem,
-      defenseGem,
-      speedGem,
-      magicGem,
-      luckGem,
-      catalystOwner,
-    } = await setupGemsAndCatalysts());
+    ({catalystOwner} = await setupGemsAndCatalysts());
     assetMinterAsCatalystOwner = await assetMinterContract.connect(
       ethers.provider.getSigner(catalystOwner)
     );
@@ -165,22 +154,8 @@ describe('AssetAttributesRegistry: getAttributes', function () {
 
   describe('getAttributes: minting', function () {
     it('can get attributes for 1 gem', async function () {
-      // expected range = minValue(1) - 25
-      const mintReceipt = await waitFor(
-        assetMinterAsCatalystOwner.mint(
-          catalystOwner,
-          mintOptions.packId,
-          mintOptions.metaDataHash,
-          catalysts[0].catalystId,
-          [gems[0].gemId],
-          NFT_SUPPLY,
-          mintOptions.rarity,
-          catalystOwner,
-          mintOptions.data
-        )
-      );
-
-      const {assetId, gemEvents} = await prepareGemEventData(
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(1, [1]);
+      const {gemEvents} = await prepareGemEventData(
         assetAttributesRegistry,
         mintReceipt
       );
@@ -188,25 +163,13 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
+
       expect(attributes[1]).to.be.within(minValue(1), 25);
     });
 
     it('can get attributes for 2 identical gems', async function () {
-      const mintReceipt = await waitFor(
-        assetMinterAsCatalystOwner.mint(
-          catalystOwner,
-          mintOptions.packId,
-          mintOptions.metaDataHash,
-          catalysts[1].catalystId,
-          [gems[1].gemId, gems[1].gemId],
-          NFT_SUPPLY,
-          mintOptions.rarity,
-          catalystOwner,
-          mintOptions.data
-        )
-      );
-
-      const {assetId, gemEvents} = await prepareGemEventData(
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(2, [2, 2]);
+      const {gemEvents} = await prepareGemEventData(
         assetAttributesRegistry,
         mintReceipt
       );
@@ -214,25 +177,17 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[2]).to.be.within(26, 50);
     });
-    it('can get attributes for 3 identical gems', async function () {
-      const mintReceipt = await waitFor(
-        assetMinterAsCatalystOwner.mint(
-          catalystOwner,
-          mintOptions.packId,
-          mintOptions.metaDataHash,
-          catalysts[2].catalystId,
-          [gems[2].gemId, gems[2].gemId, gems[2].gemId],
-          NFT_SUPPLY,
-          mintOptions.rarity,
-          catalystOwner,
-          mintOptions.data
-        )
-      );
 
-      const {assetId, gemEvents} = await prepareGemEventData(
+    it('can get attributes for 3 identical gems', async function () {
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(3, [
+        3,
+        3,
+        3,
+      ]);
+      const {gemEvents} = await prepareGemEventData(
         assetAttributesRegistry,
         mintReceipt
       );
@@ -240,25 +195,18 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[3]).to.be.within(51, 75);
     });
-    it('can get attributes for 4 identical gems', async function () {
-      const mintReceipt = await waitFor(
-        assetMinterAsCatalystOwner.mint(
-          catalystOwner,
-          mintOptions.packId,
-          mintOptions.metaDataHash,
-          catalysts[3].catalystId,
-          [gems[3].gemId, gems[3].gemId, gems[3].gemId, gems[3].gemId],
-          NFT_SUPPLY,
-          mintOptions.rarity,
-          catalystOwner,
-          mintOptions.data
-        )
-      );
 
-      const {assetId, gemEvents} = await prepareGemEventData(
+    it('can get attributes for 4 identical gems', async function () {
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, [
+        4,
+        4,
+        4,
+        4,
+      ]);
+      const {gemEvents} = await prepareGemEventData(
         assetAttributesRegistry,
         mintReceipt
       );
@@ -266,25 +214,13 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[4]).to.be.within(76, 100);
     });
-    it('can get attributes for 2 different gems', async function () {
-      const mintReceipt = await waitFor(
-        assetMinterAsCatalystOwner.mint(
-          catalystOwner,
-          mintOptions.packId,
-          mintOptions.metaDataHash,
-          catalysts[1].catalystId,
-          [gems[0].gemId, gems[1].gemId],
-          NFT_SUPPLY,
-          mintOptions.rarity,
-          catalystOwner,
-          mintOptions.data
-        )
-      );
 
-      const {assetId, gemEvents} = await prepareGemEventData(
+    it('can get attributes for 2 different gems', async function () {
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(2, [1, 2]);
+      const {gemEvents} = await prepareGemEventData(
         assetAttributesRegistry,
         mintReceipt
       );
@@ -292,26 +228,18 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[1]).to.be.within(minValue(2), 25);
       expect(attributes[2]).to.be.within(minValue(2), 25);
     });
-    it('can get attributes for 3 different gems', async function () {
-      const mintReceipt = await waitFor(
-        assetMinterAsCatalystOwner.mint(
-          catalystOwner,
-          mintOptions.packId,
-          mintOptions.metaDataHash,
-          catalysts[2].catalystId,
-          [gems[0].gemId, gems[1].gemId, gems[2].gemId],
-          NFT_SUPPLY,
-          mintOptions.rarity,
-          catalystOwner,
-          mintOptions.data
-        )
-      );
 
-      const {assetId, gemEvents} = await prepareGemEventData(
+    it('can get attributes for 3 different gems', async function () {
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(3, [
+        1,
+        2,
+        3,
+      ]);
+      const {gemEvents} = await prepareGemEventData(
         assetAttributesRegistry,
         mintReceipt
       );
@@ -319,27 +247,20 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[1]).to.be.within(minValue(3), 25);
       expect(attributes[2]).to.be.within(minValue(3), 25);
       expect(attributes[3]).to.be.within(minValue(3), 25);
     });
-    it('can get attributes for 4 different gems', async function () {
-      const mintReceipt = await waitFor(
-        assetMinterAsCatalystOwner.mint(
-          catalystOwner,
-          mintOptions.packId,
-          mintOptions.metaDataHash,
-          catalysts[3].catalystId,
-          [gems[0].gemId, gems[1].gemId, gems[2].gemId, gems[3].gemId],
-          NFT_SUPPLY,
-          mintOptions.rarity,
-          catalystOwner,
-          mintOptions.data
-        )
-      );
 
-      const {assetId, gemEvents} = await prepareGemEventData(
+    it('can get attributes for 4 different gems', async function () {
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, [
+        1,
+        2,
+        3,
+        4,
+      ]);
+      const {gemEvents} = await prepareGemEventData(
         assetAttributesRegistry,
         mintReceipt
       );
@@ -347,28 +268,20 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[1]).to.be.within(minValue(4), 25);
       expect(attributes[2]).to.be.within(minValue(4), 25);
       expect(attributes[3]).to.be.within(minValue(4), 25);
       expect(attributes[4]).to.be.within(minValue(4), 25);
     });
-    it('can get attributes for 2 identical gems + 1 different gem', async function () {
-      const mintReceipt = await waitFor(
-        assetMinterAsCatalystOwner.mint(
-          catalystOwner,
-          mintOptions.packId,
-          mintOptions.metaDataHash,
-          catalysts[2].catalystId,
-          [gems[0].gemId, gems[0].gemId, gems[1].gemId],
-          NFT_SUPPLY,
-          mintOptions.rarity,
-          catalystOwner,
-          mintOptions.data
-        )
-      );
 
-      const {assetId, gemEvents} = await prepareGemEventData(
+    it('can get attributes for 2 identical gems + 1 different gem', async function () {
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(3, [
+        1,
+        1,
+        2,
+      ]);
+      const {gemEvents} = await prepareGemEventData(
         assetAttributesRegistry,
         mintReceipt
       );
@@ -376,26 +289,19 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[1]).to.be.within(26, 50);
       expect(attributes[2]).to.be.within(minValue(3), 25);
     });
-    it('can get attributes for 3 identical gems + 1 different gem', async function () {
-      const mintReceipt = await waitFor(
-        assetMinterAsCatalystOwner.mint(
-          catalystOwner,
-          mintOptions.packId,
-          mintOptions.metaDataHash,
-          catalysts[3].catalystId,
-          [gems[1].gemId, gems[1].gemId, gems[1].gemId, gems[2].gemId],
-          NFT_SUPPLY,
-          mintOptions.rarity,
-          catalystOwner,
-          mintOptions.data
-        )
-      );
 
-      const {assetId, gemEvents} = await prepareGemEventData(
+    it('can get attributes for 3 identical gems + 1 different gem', async function () {
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, [
+        2,
+        2,
+        2,
+        3,
+      ]);
+      const {gemEvents} = await prepareGemEventData(
         assetAttributesRegistry,
         mintReceipt
       );
@@ -403,26 +309,19 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[2]).to.be.within(51, 75);
       expect(attributes[3]).to.be.within(minValue(4), 25);
     });
-    it('can get attributes for 2 identical gems + 2 different identical gems', async function () {
-      const mintReceipt = await waitFor(
-        assetMinterAsCatalystOwner.mint(
-          catalystOwner,
-          mintOptions.packId,
-          mintOptions.metaDataHash,
-          catalysts[3].catalystId,
-          [gems[1].gemId, gems[1].gemId, gems[2].gemId, gems[2].gemId],
-          NFT_SUPPLY,
-          mintOptions.rarity,
-          catalystOwner,
-          mintOptions.data
-        )
-      );
 
-      const {assetId, gemEvents} = await prepareGemEventData(
+    it('can get attributes for 2 identical gems + 2 different identical gems', async function () {
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, [
+        2,
+        2,
+        3,
+        3,
+      ]);
+      const {gemEvents} = await prepareGemEventData(
         assetAttributesRegistry,
         mintReceipt
       );
@@ -430,38 +329,19 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[2]).to.be.within(26, 50);
       expect(attributes[3]).to.be.within(26, 50);
     });
   });
+
   describe('getAttributes: upgrading', function () {
     it('can get attributes when adding 1 gem to an asset with an empty catalyst', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [1];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, []);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [1],
         catalystOwner
       );
 
@@ -474,35 +354,16 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[1]).to.be.within(minValue(1), 25);
     });
+
     it('can get attributes when adding 2 identical gems to an asset with an empty catalyst', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [2, 2];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, []);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [2, 2],
         catalystOwner
       );
 
@@ -515,35 +376,16 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[2]).to.be.within(26, 50);
     });
+
     it('can get attributes when adding 3 identical gems to an asset with an empty catalyst', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [3, 3, 3];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, []);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [3, 3, 3],
         catalystOwner
       );
 
@@ -556,35 +398,16 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[3]).to.be.within(51, 75);
     });
+
     it('can get attributes when adding 4 identical gems to an asset with an empty catalyst', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [4, 4, 4, 4];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, []);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [4, 4, 4, 4],
         catalystOwner
       );
 
@@ -597,36 +420,16 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[4]).to.be.within(76, 100);
     });
 
     it('can get attributes when adding 2 different gems to an asset with an empty catalyst', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [1, 2];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, []);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [1, 2],
         catalystOwner
       );
 
@@ -639,37 +442,17 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[1]).to.be.within(minValue(2), 25);
       expect(attributes[2]).to.be.within(minValue(2), 25);
     });
 
     it('can get attributes when adding 3 different gems to an asset with an empty catalyst', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [1, 2, 3];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, []);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [1, 2, 3],
         catalystOwner
       );
 
@@ -682,38 +465,18 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[1]).to.be.within(minValue(3), 25);
       expect(attributes[2]).to.be.within(minValue(3), 25);
       expect(attributes[3]).to.be.within(minValue(3), 25);
     });
 
     it('can get attributes when adding 4 different gems to an asset with an empty catalyst', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [1, 2, 3, 4];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, []);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [1, 2, 3, 4],
         catalystOwner
       );
 
@@ -726,7 +489,7 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[1]).to.be.within(minValue(4), 25);
       expect(attributes[2]).to.be.within(minValue(4), 25);
       expect(attributes[3]).to.be.within(minValue(4), 25);
@@ -734,31 +497,11 @@ describe('AssetAttributesRegistry: getAttributes', function () {
     });
 
     it('can get attributes when adding 1 similar gem to an asset with existing gems', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [1],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [1];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, [1]);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [1],
         catalystOwner
       );
 
@@ -771,36 +514,16 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[1]).to.be.within(26, 50);
     });
 
     it('can get attributes when adding 1 different gem to an asset with existing gems', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [1],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [2];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, [1]);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [2],
         catalystOwner
       );
 
@@ -813,37 +536,17 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
-      console.log(`attributes: ${attributes}`);
+
       expect(attributes[1]).to.be.within(minValue(2), 25);
       expect(attributes[2]).to.be.within(minValue(2), 25);
     });
 
     it('can get attributes when adding 2 similar gems to an asset with existing gems', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [1],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [1, 1];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, [1]);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [1, 1],
         catalystOwner
       );
 
@@ -856,36 +559,17 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
+
       console.log(`attributes: ${attributes}`);
       expect(attributes[1]).to.be.within(51, 75);
     });
 
     it('can get attributes when adding 2 different gems to an asset with existing gems', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [1],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [2, 3];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, [1]);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [2, 3],
         catalystOwner
       );
 
@@ -898,6 +582,7 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
+
       console.log(`attributes: ${attributes}`);
       expect(attributes[1]).to.be.within(minValue(3), 25);
       expect(attributes[2]).to.be.within(minValue(3), 25);
@@ -905,31 +590,11 @@ describe('AssetAttributesRegistry: getAttributes', function () {
     });
 
     it('can get attributes when adding 3 similar gems to an asset with existing gems', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [5],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [5, 5, 5];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, [5]);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [5, 5, 5],
         catalystOwner
       );
 
@@ -942,6 +607,7 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
+
       console.log(`attributes: ${attributes}`);
       expect(attributes[5]).to.be.within(76, 100);
     });
