@@ -1,6 +1,6 @@
 import {ethers} from 'hardhat';
-import {Address} from 'hardhat-deploy/types';
-import {BigNumber, Contract} from 'ethers';
+import {Address, Receipt} from 'hardhat-deploy/types';
+import {BigNumber, Contract, Event} from 'ethers';
 import {expect} from '../../chai-setup';
 import catalysts from '../../../data/catalysts';
 import gems from '../../../data/gems';
@@ -55,6 +55,28 @@ function minValue(gems: number): number {
   return (gems - 1) * 5 + 1;
 }
 
+// async function getMintReceipt(
+//   catId: number,
+//   gemIds: number[],
+//   minter: Contract,
+//   creator: Address,
+//   owner: Address,
+//   mintOptions: MintOptions
+// ): Promise<Receipt> {
+//   const mintReceipt = await minter.mint(
+//     creator,
+//     mintOptions.packId,
+//     mintOptions.metaDataHash,
+//     catId,
+//     gemIds,
+//     NFT_SUPPLY,
+//     mintOptions.rarity,
+//     owner,
+//     mintOptions.data
+//   );
+//   return mintReceipt;
+// }
+
 // on minting an asset, the CatalystApplied event is emitted. When gems are added(upgrade) the GemsAdded event is emitted. In order to getAttributes, we need to collect all CatalystApplied && GemsAdded events, from the blocknumber when the catalyst was applied onwards...
 // so:
 // 1.) mint the asset w/catalyst and get the assetId & blockNumber
@@ -76,6 +98,49 @@ describe('AssetAttributesRegistry: getAttributes', function () {
   let speedGem: Contract;
   let magicGem: Contract;
   let luckGem: Contract;
+
+  async function getMintReceipt(
+    catId: number,
+    gemIds: number[]
+  ): Promise<Receipt> {
+    const mintReceipt = await assetMinterAsCatalystOwner.mint(
+      catalystOwner,
+      mintOptions.packId,
+      mintOptions.metaDataHash,
+      catId,
+      gemIds,
+      NFT_SUPPLY,
+      mintOptions.rarity,
+      catalystOwner,
+      mintOptions.data
+    );
+    return mintReceipt;
+  }
+
+  async function getCatEvents(receipt: Receipt): Promise<Event[]> {
+    const events = await findEvents(
+      assetAttributesRegistry,
+      'CatalystApplied',
+      receipt.blockHash
+    );
+    return events;
+  }
+
+  interface AssetMintObj {
+    id: BigNumber;
+    receipt: Receipt;
+  }
+
+  async function getAssetId(
+    catalystId: number,
+    gemIds: number[]
+  ): Promise<AssetMintObj> {
+    const mintReceipt = await getMintReceipt(catalystId, gemIds);
+    const catalystAppliedEvents = await getCatEvents(mintReceipt);
+    const args = catalystAppliedEvents[0].args;
+    const assetId = args ? args[0] : null;
+    return {id: assetId, receipt: mintReceipt};
+  }
 
   beforeEach(async function () {
     ({assetMinterContract} = await setupAssetMinter());
@@ -882,31 +947,11 @@ describe('AssetAttributesRegistry: getAttributes', function () {
     });
 
     it('can get attributes when adding 3 different gems to an asset with existing gems', async function () {
-      const mintReceipt = await assetMinterAsCatalystOwner.mint(
-        catalystOwner,
-        mintOptions.packId,
-        mintOptions.metaDataHash,
-        catalysts[3].catalystId,
-        [1],
-        NFT_SUPPLY,
-        mintOptions.rarity,
-        catalystOwner,
-        mintOptions.data
-      );
-      const catalystAppliedEvents = await findEvents(
-        assetAttributesRegistry,
-        'CatalystApplied',
-        mintReceipt.blockHash
-      );
-      let assetId;
-      if (catalystAppliedEvents[0].args) {
-        assetId = catalystAppliedEvents[0].args[0];
-      }
-      const gemIds = [2, 3, 4];
+      const {id: assetId, receipt: mintReceipt} = await getAssetId(4, [1]);
       const upgradeReceipt = await assetUpgraderContract.addGems(
         catalystOwner,
         assetId,
-        gemIds,
+        [2, 3, 4],
         catalystOwner
       );
 
@@ -919,6 +964,7 @@ describe('AssetAttributesRegistry: getAttributes', function () {
         assetId,
         gemEvents
       );
+
       console.log(`attributes: ${attributes}`);
       expect(attributes[1]).to.be.within(minValue(4), 25);
       expect(attributes[2]).to.be.within(minValue(4), 25);
